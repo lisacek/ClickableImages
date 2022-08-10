@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import sins.johnny.clickableimages.cons.Asset;
 import sins.johnny.clickableimages.managers.Managers;
+import sins.johnny.clickableimages.managers.impl.ClickableImagesManager;
 import sins.johnny.clickableimages.managers.impl.PlacingManager;
 
 public class PlaceListener implements Listener {
@@ -34,6 +35,7 @@ public class PlaceListener implements Listener {
 
         asset.place(e.getPlayer(), (ItemFrame) entity);
         placingManager.removeAsset(e.getPlayer().getName());
+        Managers.getManager(ClickableImagesManager.class).initMaps();
     }
 
 }
