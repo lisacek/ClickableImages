@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 
 public class AssetsManager implements Manager {
 
+    private static final int WIDTH = 128;
+    private static final int HEIGHT = 128;
+
     private File folder;
     private final List<Asset> assets = new ArrayList<>();
 
@@ -37,8 +40,8 @@ public class AssetsManager implements Manager {
         for (File file : getAllAssets()) {
             try {
                 BufferedImage image = ImageIO.read(file);
-                double rows = (double) (image.getHeight() / 256);
-                double columns = (double) (image.getWidth() / 256);
+                double rows = (double) (image.getHeight() / HEIGHT);
+                double columns = (double) (image.getWidth() / WIDTH);
 
                 rows = (int) Math.ceil(rows);
                 columns = (int) Math.ceil(columns);
@@ -47,7 +50,7 @@ public class AssetsManager implements Manager {
                 for (int i = 0; i < rows; i++) {
                     List<BufferedImage> row = new ArrayList<>();
                     for (int j = 0; j < columns; j++) {
-                        row.add(image.getSubimage(j * 256, i * 256, 256, 256));
+                        row.add(image.getSubimage(j * WIDTH, i * HEIGHT, WIDTH, HEIGHT));
                     }
                     grid.add(row);
                 }
