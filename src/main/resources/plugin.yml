@@ -1,0 +1,8 @@
+name: ClickableImages
+version: '${project.version}'
+main: sins.johnny.clickableimages.ClickableImages
+author: JohnnySins
+commands:
+  place:
+    description: Place an image on the map
+    usage: /place <image>
