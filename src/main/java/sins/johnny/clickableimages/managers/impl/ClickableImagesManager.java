@@ -2,12 +2,21 @@ package sins.johnny.clickableimages.managers.impl;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapView;
 import sins.johnny.clickableimages.cons.ClickableImage;
+import sins.johnny.clickableimages.cons.Pair;
+import sins.johnny.clickableimages.cons.Renderer;
 import sins.johnny.clickableimages.listeners.ClickListener;
-import sins.johnny.clickableimages.listeners.RenderListener;
 import sins.johnny.clickableimages.managers.Manager;
+import sins.johnny.clickableimages.managers.Managers;
+import sins.johnny.clickableimages.utils.ItemUtils;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +35,7 @@ public class ClickableImagesManager implements Manager {
         loadImages();
 
         Bukkit.getPluginManager().registerEvents(new ClickListener(), getPlugin());
-        Bukkit.getPluginManager().registerEvents(new RenderListener(), getPlugin());
+        initMaps();
     }
 
     @Override
@@ -47,7 +56,34 @@ public class ClickableImagesManager implements Manager {
             List<Location> locations = (List<Location>) config.getList("locations");
 
             images.add(new ClickableImage(image, actions, locations));
+            System.out.println("Loaded image: " + image);
         }
+    }
+
+    public void initMaps() {
+        for (World world : Bukkit.getWorlds()) {
+            for (ItemFrame frame : world.getEntitiesByClass(ItemFrame.class)) {
+                initMap(frame);
+            }
+        }
+    }
+
+    public void initMap(ItemFrame item) {
+        ClickableImage image = getImage(item.getLocation());
+        if (image == null) return;
+
+        Pair<Integer, Integer> axis = image.getGridLocation(item.getLocation());
+        if(axis == null) return;
+
+        BufferedImage bfIm = image.getAsset().getImage(axis.getFirst(), axis.getSecond());
+        MapView map = Bukkit.getServer().getMap(ItemUtils.getMapIdFromItemStack(item.getItem()));
+
+        map.getRenderers().clear();
+
+        Renderer renderer = Renderer.installRenderer(map);
+        renderer.setImage(bfIm);
+        map.addRenderer(renderer);
+        item.setItem(ItemUtils.createMapItem(map.getId()));
     }
 
     public List<ClickableImage> getImages() {
