@@ -16,4 +16,20 @@ public class Pair <T, U> {
     public U getSecond() {
         return second;
     }
+
+    public T getKey() {
+        return first;
+    }
+
+    public U getValue() {
+        return second;
+    }
+
+    @Override
+    public String toString() {
+        return "Pair{" +
+                "first=" + first +
+                ", second=" + second +
+                '}';
+    }
 }
