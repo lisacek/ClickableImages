@@ -16,9 +16,9 @@ public class ClickableImage {
 
     private final String image;
     private final List<String> actions;
-    private final List<Location> locations;
+    private final List<List<Location>> locations;
 
-    public ClickableImage(String image, List<String> actions, List<Location> locations) {
+    public ClickableImage(String image, List<String> actions, List<List<Location>> locations) {
         this.image = image;
         this.actions = actions;
         this.locations = locations;
@@ -32,21 +32,8 @@ public class ClickableImage {
         return actions;
     }
 
-    public List<Location> getLocations() {
+    public List<List<Location>> getGrid() {
         return locations;
-    }
-
-    public Pair<Integer, Integer> getGridLocation(Location location) {
-        int indexOfLocation = locations.indexOf(location);
-
-        Asset asset = Managers.getManager(AssetsManager.class).getAsset(image);
-        int rows = asset.getRows();
-        int columns = asset.getColumns();
-
-        int row = indexOfLocation / columns;
-        int column = indexOfLocation % columns;
-
-        return new Pair<>(row, column);
     }
 
     public Asset getAsset() {
@@ -65,13 +52,19 @@ public class ClickableImage {
             folder.mkdirs();
         }
 
-        File file = new File(folder, image+ "_"+ System.currentTimeMillis() + ".yml");
+        File file = new File(folder, image + "_" + System.currentTimeMillis() + ".yml");
         try {
             file.createNewFile();
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
             config.set("image", image);
             config.set("actions", actions);
-            config.set("locations", locations);
+
+            List<List<Location>> grid = getGrid();
+            for (int i = 0; i < grid.size(); i++) {
+                List<Location> row = grid.get(i);
+                config.set("locations." + i, row);
+            }
+
             config.save(file);
         } catch (IOException e) {
             throw new RuntimeException(e);

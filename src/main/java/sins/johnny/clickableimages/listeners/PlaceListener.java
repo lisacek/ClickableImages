@@ -28,11 +28,6 @@ public class PlaceListener implements Listener {
             return;
         }
 
-        if(!asset.canPlace((ItemFrame) entity)) {
-            e.getPlayer().sendMessage("You can't place this asset here!");
-            return;
-        }
-
         asset.place(e.getPlayer(), (ItemFrame) entity);
         placingManager.removeAsset(e.getPlayer().getName());
         Managers.getManager(ClickableImagesManager.class).initMaps();

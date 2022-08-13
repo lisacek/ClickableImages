@@ -1,5 +1,6 @@
 package sins.johnny.clickableimages.managers.impl;
 
+import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -53,8 +54,11 @@ public class ClickableImagesManager implements Manager {
 
             String image = config.getString("image");
             List<String> actions = config.getStringList("actions");
-            List<Location> locations = (List<Location>) config.getList("locations");
-
+            List<List<Location>> locations = Lists.newArrayList();
+            int rows = config.getConfigurationSection("locations").getKeys(false).size();
+            for (int i = 0; i < rows; i++) {
+                locations.add((List<Location>) config.getList("locations." + i));
+            }
             images.add(new ClickableImage(image, actions, locations));
             System.out.println("Loaded image: " + image);
         }
@@ -72,8 +76,8 @@ public class ClickableImagesManager implements Manager {
         ClickableImage image = getImage(item.getLocation());
         if (image == null) return;
 
-        Pair<Integer, Integer> axis = image.getGridLocation(item.getLocation());
-        if(axis == null) return;
+        Pair<Integer, Integer> axis = findGrid(image, item.getLocation());
+        if (axis == null) return;
 
         BufferedImage bfIm = image.getAsset().getImage(axis.getFirst(), axis.getSecond());
         MapView map = Bukkit.getServer().getMap(ItemUtils.getMapIdFromItemStack(item.getItem()));
@@ -86,12 +90,24 @@ public class ClickableImagesManager implements Manager {
         item.setItem(ItemUtils.createMapItem(map.getId()));
     }
 
+    public Pair<Integer, Integer> findGrid(ClickableImage image, Location location) {
+        List<List<Location>> grid = image.getGrid();
+        for (int i = 0; i < grid.size(); i++) {
+            for (int j = 0; j < grid.get(i).size(); j++) {
+                if (grid.get(i).get(j).equals(location)) {
+                    return new Pair<>(i, j);
+                }
+            }
+        }
+        return null;
+    }
+
     public List<ClickableImage> getImages() {
         return images;
     }
 
     public ClickableImage getImage(Location location) {
-        return images.stream().filter(image -> image.getLocations().contains(location)).findFirst().orElse(null);
+        return images.stream().filter(image -> image.getGrid().stream().anyMatch(row -> row.stream().anyMatch(loc -> loc.equals(location)))).findFirst().orElse(null);
     }
 
 }

@@ -1,7 +1,11 @@
 package sins.johnny.clickableimages.cons;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import sins.johnny.clickableimages.managers.Managers;
@@ -9,7 +13,10 @@ import sins.johnny.clickableimages.managers.impl.ClickableImagesManager;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Asset {
@@ -71,24 +78,87 @@ public class Asset {
     }
 
     public ClickableImage place(Player p, ItemFrame itemFrame) {
-        if (!canPlace(itemFrame)) {
+
+        boolean changingX = false;
+        BlockFace direction = itemFrame.getFacing();
+        switch (direction) {
+            case NORTH:
+            case SOUTH:
+                changingX = true;
+                break;
+            default:
+                break;
+        }
+
+        Set<ItemFrame> frames = Sets.newHashSet();
+        frames.add(itemFrame);
+
+        itemFrame.getNearbyEntities(changingX ? 10 : 0, 10, changingX ? 0 : 10).forEach(entity -> {
+            if (entity instanceof ItemFrame) {
+                frames.add((ItemFrame) entity);
+            }
+        });
+
+        //Rows
+        Set<Integer> r = Sets.newHashSet();
+        // Y to Row
+        Map<Integer, Integer> fck = Maps.newHashMap();
+
+        // generate row size
+        frames.forEach(it -> {
+            if (!r.contains(it.getLocation().getBlockY())) {
+                fck.put(it.getLocation().getBlockY(), r.size() + 1);
+            }
+            r.add(it.getLocation().getBlockY());
+        });
+
+        // final grid
+        List<List<Location>> g = Lists.newArrayList();
+
+        // add rows
+        for (int x = 0; x < r.size(); x++) {
+            List<Location> row = Lists.newArrayList();
+            g.add(row);
+        }
+
+        // add frames to its row and short it
+        boolean finalChangingX = changingX;
+        frames.forEach(it -> {
+            g.get(fck.get(it.getLocation().getBlockY()) - 1).add(it.getLocation());
+            if (finalChangingX) {
+                g.get(fck.get(it.getLocation().getBlockY()) - 1).sort(Comparator.comparingInt(Location::getBlockX));
+            } else {
+                g.get(fck.get(it.getLocation().getBlockY()) - 1).sort(Comparator.comparingInt(Location::getBlockZ));
+            }
+        });
+
+        // get number of rows from fck
+        int rows = fck.size();
+        // get total values from each row from fck
+        int total =frames.size();
+        int totalRows = grid.size();
+
+        AtomicInteger count = new AtomicInteger();
+        grid.forEach(row -> {
+            row.forEach(image -> {
+                count.getAndIncrement();
+            } );
+        } );
+
+
+        if (count.get() > total) {
+            Bukkit.getLogger().info("Too many images to place");
             return null;
         }
 
-        Location location = itemFrame.getLocation();
-        int rows = getRows();
-        int columns = getColumns();
-        List<Location> locations = Lists.newArrayList();
-        for (int row = 0; row < rows; row++) {
-            for (int column = 0; column < columns; column++) {
-                locations.add(location.clone().add(column, row, 0));
-            }
+        if (rows > totalRows) {
+            Bukkit.getLogger().info("Too many rows to place");
+            return null;
         }
 
-        ClickableImage image = new ClickableImage(file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), locations);
+        ClickableImage image = new ClickableImage(file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), g);
         image.save();
         Managers.getManager(ClickableImagesManager.class).getImages().add(image);
-
         return image;
     }
 }
