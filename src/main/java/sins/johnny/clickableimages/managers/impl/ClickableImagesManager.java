@@ -20,6 +20,7 @@ import sins.johnny.clickableimages.utils.ItemUtils;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -80,7 +81,7 @@ public class ClickableImagesManager implements Manager {
         if (axis == null) return;
 
         BufferedImage bfIm = image.getAsset().getImage(axis.getFirst(), axis.getSecond());
-        MapView map = Bukkit.getServer().getMap(ItemUtils.getMapIdFromItemStack(item.getItem()));
+        MapView map = Bukkit.createMap(item.getWorld());
 
         map.getRenderers().clear();
 

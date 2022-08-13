@@ -13,10 +13,7 @@ import sins.johnny.clickableimages.managers.impl.ClickableImagesManager;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Asset {
@@ -31,14 +28,6 @@ public class Asset {
 
     public File getFile() {
         return file;
-    }
-
-    public List<List<BufferedImage>> getGrid() {
-        return grid;
-    }
-
-    public List<BufferedImage> getRow(int row) {
-        return grid.get(row);
     }
 
     public BufferedImage getImage(int row, int column) {
@@ -64,21 +53,28 @@ public class Asset {
     }
 
     public boolean canPlace(ItemFrame itemFrame) {
-        Location location = itemFrame.getLocation();
+        boolean changingX = false;
+        BlockFace direction = itemFrame.getFacing();
+        switch (direction) {
+            case NORTH:
+            case SOUTH:
+                changingX = true;
+                break;
+            default:
+                break;
+        }
 
         AtomicInteger count = new AtomicInteger();
-        itemFrame.getNearbyEntities(getColumns(), getRows(), getColumns()).forEach(entity -> {
+        itemFrame.getNearbyEntities(changingX ? getColumns(): 0, getRows(), changingX ? 0 : getColumns()).forEach(entity -> {
             if (entity instanceof ItemFrame) {
                 ItemFrame other = (ItemFrame) entity;
                 count.getAndIncrement();
             }
         });
-
-        return count.get() > getTotalImages();
+        return count.get() + 1 == getTotalImages();
     }
 
     public ClickableImage place(Player p, ItemFrame itemFrame) {
-
         boolean changingX = false;
         BlockFace direction = itemFrame.getFacing();
         switch (direction) {
@@ -93,7 +89,7 @@ public class Asset {
         Set<ItemFrame> frames = Sets.newHashSet();
         frames.add(itemFrame);
 
-        itemFrame.getNearbyEntities(changingX ? 10 : 0, 10, changingX ? 0 : 10).forEach(entity -> {
+        itemFrame.getNearbyEntities(changingX ? getColumns(): 0, getRows(), changingX ? 0 : getColumns()).forEach(entity -> {
             if (entity instanceof ItemFrame) {
                 frames.add((ItemFrame) entity);
             }
@@ -156,6 +152,7 @@ public class Asset {
             return null;
         }
 
+        Collections.reverse(g);
         ClickableImage image = new ClickableImage(file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), g);
         image.save();
         Managers.getManager(ClickableImagesManager.class).getImages().add(image);
