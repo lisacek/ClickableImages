@@ -24,8 +24,7 @@ public class PlaceCommand implements CommandExecutor {
         }
 
         Managers.getManager(PlacingManager.class).prepareToPlace(asset, sender.getName());
-        sender.sendMessage("Place the asset where you want it to be!");
-
+        sender.sendMessage("Place the asset where you want it to be! (" + asset.getRows() + "x" + asset.getColumns() + ")");
         return true;
     }
 

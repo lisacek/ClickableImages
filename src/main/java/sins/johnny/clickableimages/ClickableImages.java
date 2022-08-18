@@ -2,12 +2,11 @@ package sins.johnny.clickableimages;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import sins.johnny.clickableimages.commands.AssetCommand;
+import sins.johnny.clickableimages.commands.DeleteCommand;
 import sins.johnny.clickableimages.commands.PlaceCommand;
 import sins.johnny.clickableimages.managers.Managers;
-import sins.johnny.clickableimages.managers.impl.AssetsManager;
-import sins.johnny.clickableimages.managers.impl.ClickableImagesManager;
-import sins.johnny.clickableimages.managers.impl.ConfigurationsManager;
-import sins.johnny.clickableimages.managers.impl.PlacingManager;
+import sins.johnny.clickableimages.managers.impl.*;
 
 public final class ClickableImages extends JavaPlugin {
 
@@ -21,8 +20,11 @@ public final class ClickableImages extends JavaPlugin {
         Managers.register(AssetsManager.class);
         Managers.register(ClickableImagesManager.class);
         Managers.register(PlacingManager.class);
+        Managers.register(DeleteManager.class);
 
         getCommand("place").setExecutor(new PlaceCommand());
+        getCommand("delete").setExecutor(new DeleteCommand());
+        getCommand("asset").setExecutor(new AssetCommand());
     }
 
     @Override

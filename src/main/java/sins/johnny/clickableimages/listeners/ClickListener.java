@@ -21,7 +21,6 @@ public class ClickListener implements Listener {
 
         if(image == null) return;
         event.setCancelled(true);
-
         image.run(event.getPlayer());
     }
 

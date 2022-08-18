@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -51,29 +52,7 @@ public class Asset {
         return total.get();
     }
 
-    public boolean canPlace(ItemFrame itemFrame) {
-        boolean changingX = false;
-        BlockFace direction = itemFrame.getFacing();
-        switch (direction) {
-            case NORTH:
-            case SOUTH:
-                changingX = true;
-                break;
-            default:
-                break;
-        }
-
-        AtomicInteger count = new AtomicInteger();
-        itemFrame.getNearbyEntities(changingX ? getColumns() : 0, getRows(), changingX ? 0 : getColumns()).forEach(entity -> {
-            if (entity instanceof ItemFrame) {
-                ItemFrame other = (ItemFrame) entity;
-                count.getAndIncrement();
-            }
-        });
-        return count.get() + 1 == getTotalImages();
-    }
-
-    public ClickableImage place(Player p, ItemFrame frame) {
+    public Pair<Boolean, NodeList> canPlace(ItemFrame frame) {
         Location l = frame.getLocation();
         NodeList list = new NodeList();
         int indexX = 0;
@@ -106,6 +85,11 @@ public class Asset {
         }
 
         list.sort(facing == BlockFace.NORTH || facing == BlockFace.EAST);
+        return new Pair<>(getTotalImages() == list.size(), list);
+    }
+
+    public ClickableImage place(NodeList list, Player p, ItemFrame frame) {
+        BlockFace facing = frame.getFacing();
 
         List<List<Location>> grid = Lists.newArrayList();
 
@@ -121,7 +105,7 @@ public class Asset {
             Collections.reverse(grid);
         }
 
-        ClickableImage image = new ClickableImage(file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), grid);
+        ClickableImage image = new ClickableImage(file.getName() + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml", file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), grid);
         image.save();
         Managers.getManager(ClickableImagesManager.class).getImages().add(image);
         return image;

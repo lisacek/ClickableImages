@@ -6,22 +6,31 @@ import org.bukkit.entity.Player;
 import sins.johnny.clickableimages.ClickableImages;
 import sins.johnny.clickableimages.managers.Managers;
 import sins.johnny.clickableimages.managers.impl.AssetsManager;
+import sins.johnny.clickableimages.managers.impl.ClickableImagesManager;
 import sins.johnny.clickableimages.utils.ActionsUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClickableImage {
+
+    private final String name;
 
     private final String image;
     private final List<String> actions;
     private final List<List<Location>> locations;
 
-    public ClickableImage(String image, List<String> actions, List<List<Location>> locations) {
+    public ClickableImage(String name, String image, List<String> actions, List<List<Location>> locations) {
+        this.name = name;
         this.image = image;
         this.actions = actions;
         this.locations = locations;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getImage() {
@@ -35,6 +44,17 @@ public class ClickableImage {
     public List<List<Location>> getGrid() {
         return locations;
     }
+
+    //rows
+    public int getRows() {
+        return locations.size();
+    }
+
+    //total columns
+    public int getColumns() {
+        return locations.get(0).size();
+    }
+
 
     public Asset getAsset() {
         return Managers.getManager(AssetsManager.class).getAsset(image);
@@ -52,7 +72,17 @@ public class ClickableImage {
             folder.mkdirs();
         }
 
-        File file = new File(folder, image + "_" + System.currentTimeMillis() + ".yml");
+        AtomicInteger count = new AtomicInteger(0);
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    count.incrementAndGet();
+                }
+            }
+        }
+
+        File file = new File(folder, image + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml");
         try {
             file.createNewFile();
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -69,5 +99,14 @@ public class ClickableImage {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void delete() {
+        File folder = new File(ClickableImages.getInstance().getDataFolder(), "images");
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        File file = new File(folder, name);
+        file.delete();
     }
 }

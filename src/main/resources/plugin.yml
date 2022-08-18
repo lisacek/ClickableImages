@@ -7,3 +7,9 @@ commands:
   place:
     description: Place an image on the map
     usage: /place <image>
+  delete:
+    description: List all images on the map
+    usage: /list
+  asset:
+    description: Information about an image
+    usage: /asset <image>

@@ -62,7 +62,7 @@ public class ClickableImagesManager implements Manager {
             for (int i = 0; i < rows; i++) {
                 locations.add((List<Location>) config.getList("locations." + i));
             }
-            images.add(new ClickableImage(image, actions, locations));
+            images.add(new ClickableImage(file.getName(),image, actions, locations));
             System.out.println("Loaded image: " + image);
         }
     }

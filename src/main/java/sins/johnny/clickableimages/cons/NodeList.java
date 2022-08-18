@@ -108,12 +108,12 @@ public class NodeList {
         }
     }
 
-    static class Node {
+    public static class Node {
         int x;
         int y;
         int value;
         Node next;
-        ItemFrame frame;
+        public ItemFrame frame;
 
         public Node(int x, int y, ItemFrame frame) {
             this.x = x;
