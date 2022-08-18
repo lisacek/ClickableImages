@@ -12,7 +12,7 @@ public class DeleteCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        Managers.getManager(DeleteManager.class).onEnable();
+        Managers.getManager(DeleteManager.class).start();
         sender.sendMessage("Click image to delete it!");
         return true;
     }

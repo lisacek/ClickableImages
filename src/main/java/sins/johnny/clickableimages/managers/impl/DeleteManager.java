@@ -9,11 +9,15 @@ public class DeleteManager implements Manager {
 
     @Override
     public void onEnable() {
-        Bukkit.getPluginManager().registerEvents(new DeleteListener(), getPlugin());
+
     }
 
     @Override
     public void onDisable() {
 
+    }
+
+    public void start() {
+        Bukkit.getPluginManager().registerEvents(new DeleteListener(), getPlugin());
     }
 }
