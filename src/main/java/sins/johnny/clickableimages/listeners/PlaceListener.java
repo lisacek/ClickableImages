@@ -34,6 +34,7 @@ public class PlaceListener implements Listener {
         asset.place(e.getPlayer(), (ItemFrame) entity);
         placingManager.removeAsset(e.getPlayer().getName());
         Managers.getManager(ClickableImagesManager.class).initMaps();
+        e.setCancelled(true);
     }
 
 }

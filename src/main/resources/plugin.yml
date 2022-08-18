@@ -2,6 +2,7 @@ name: ClickableImages
 version: '${project.version}'
 main: sins.johnny.clickableimages.ClickableImages
 author: JohnnySins
+api-version: 1.16
 commands:
   place:
     description: Place an image on the map

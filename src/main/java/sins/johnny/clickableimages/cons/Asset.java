@@ -2,7 +2,6 @@ package sins.johnny.clickableimages.cons;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
@@ -65,7 +64,7 @@ public class Asset {
         }
 
         AtomicInteger count = new AtomicInteger();
-        itemFrame.getNearbyEntities(changingX ? getColumns(): 0, getRows(), changingX ? 0 : getColumns()).forEach(entity -> {
+        itemFrame.getNearbyEntities(changingX ? getColumns() : 0, getRows(), changingX ? 0 : getColumns()).forEach(entity -> {
             if (entity instanceof ItemFrame) {
                 ItemFrame other = (ItemFrame) entity;
                 count.getAndIncrement();
@@ -74,88 +73,234 @@ public class Asset {
         return count.get() + 1 == getTotalImages();
     }
 
-    public ClickableImage place(Player p, ItemFrame itemFrame) {
-        boolean changingX = false;
-        BlockFace direction = itemFrame.getFacing();
-        switch (direction) {
-            case NORTH:
-            case SOUTH:
-                changingX = true;
-                break;
-            default:
-                break;
+    public ClickableImage place(Player p, ItemFrame frame) {
+        Location l = frame.getLocation();
+        NodeList list = new NodeList();
+        int indexX = 0;
+        int indexY = 0;
+
+        BlockFace facing = frame.getFacing();
+        if (facing == BlockFace.NORTH) {
+            // x + | y
+            checkRowX(frame, l, list, -indexX, indexY);
+        }
+        else if (facing == BlockFace.SOUTH) {
+            // x - | y
+            checkRowX(frame, l, list, indexX, indexY);
+        }
+        else if (facing == BlockFace.EAST) {
+            // z - | y
+            checkRowZ(frame, l, list, indexX, indexY);
+        }
+        else if (facing == BlockFace.WEST) {
+            // z + | y
+            checkRowZ(frame, l, list, -indexX, indexY);
+        }
+        else if (facing == BlockFace.DOWN) {
+            // x + | z
+            checkRowY(frame, l, list, indexX, indexY);
+        }
+        else if (facing == BlockFace.UP) {
+            // x - | z
+            checkRowY(frame, l, list, -indexX, indexY);
         }
 
-        Set<ItemFrame> frames = Sets.newHashSet();
-        frames.add(itemFrame);
+        list.sort(facing == BlockFace.NORTH || facing == BlockFace.EAST);
 
-        itemFrame.getNearbyEntities(changingX ? getColumns(): 0, getRows(), changingX ? 0 : getColumns()).forEach(entity -> {
-            if (entity instanceof ItemFrame) {
-                frames.add((ItemFrame) entity);
-            }
-        });
+        List<List<Location>> grid = Lists.newArrayList();
 
-        //Rows
-        Set<Integer> r = Sets.newHashSet();
-        // Y to Row
-        Map<Integer, Integer> fck = Maps.newHashMap();
-
-        // generate row size
-        frames.forEach(it -> {
-            if (!r.contains(it.getLocation().getBlockY())) {
-                fck.put(it.getLocation().getBlockY(), r.size() + 1);
-            }
-            r.add(it.getLocation().getBlockY());
-        });
-
-        // final grid
-        List<List<Location>> g = Lists.newArrayList();
-
-        // add rows
-        for (int x = 0; x < r.size(); x++) {
+        for (int i = 0; i < list.rows; i++) {
             List<Location> row = Lists.newArrayList();
-            g.add(row);
-        }
-
-        // add frames to its row and short it
-        boolean finalChangingX = changingX;
-        frames.forEach(it -> {
-            g.get(fck.get(it.getLocation().getBlockY()) - 1).add(it.getLocation());
-            if (finalChangingX) {
-                g.get(fck.get(it.getLocation().getBlockY()) - 1).sort(Comparator.comparingInt(Location::getBlockX));
-            } else {
-                g.get(fck.get(it.getLocation().getBlockY()) - 1).sort(Comparator.comparingInt(Location::getBlockZ));
+            for (int j = 0; j < list.columns; j++) {
+                row.add(list.getNodeAt(i, j).frame.getLocation());
             }
-        });
-
-        // get number of rows from fck
-        int rows = fck.size();
-        // get total values from each row from fck
-        int total =frames.size();
-        int totalRows = grid.size();
-
-        AtomicInteger count = new AtomicInteger();
-        grid.forEach(row -> {
-            row.forEach(image -> {
-                count.getAndIncrement();
-            } );
-        } );
-
-
-        if (count.get() > total) {
-            Bukkit.getLogger().info("Too many images to place");
-            return null;
+            grid.add(row);
         }
 
-        if (rows > totalRows) {
-            Bukkit.getLogger().info("Too many rows to place");
-            return null;
+        if(facing == BlockFace.WEST || facing == BlockFace.SOUTH) {
+            Collections.reverse(grid);
         }
 
-        Collections.reverse(g);
-        ClickableImage image = new ClickableImage(file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), g);
+        ClickableImage image = new ClickableImage(file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), grid);
         image.save();
         Managers.getManager(ClickableImagesManager.class).getImages().add(image);
         return image;
     }
+
+
+    private void checkRowX(ItemFrame frame, Location l, NodeList list, int indexX, int indexY) {
+        list.add(indexX, indexY, frame);
+        checkColumnX(l, list, indexX);
+        int columns = 1;
+        while(true) {
+            indexX++;
+            Collection<ItemFrame> frames = l.clone().add(indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            if (frames.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames) {
+                list.add(indexX, indexY, f);
+            }
+            checkColumnX(l, list, indexX);
+            columns++;
+        }
+        indexX = 0;
+        while(true) {
+            indexX++;
+            Collection<ItemFrame> frames = l.clone().add(-indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0.5, 0);
+            if (frames.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames) {
+                list.add(-indexX, indexY, f);
+            }
+            checkColumnX(l, list, -indexX);
+            columns++;
+        }
+        list.columns = columns;
+        list.rows = list.size() / columns;
+    }
+
+    private void checkColumnX(Location l, NodeList list, int indexX) {
+        int indexY = 0;
+        while(true) {
+            indexY++;
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, indexY, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            if (frames1.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames1) {
+                list.add(indexX, indexY, f);
+            }
+        }
+        indexY = 0;
+        while(true) {
+            indexY++;
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, -indexY, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            if (frames1.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames1) {
+                list.add(indexX, -indexY, f);
+            }
+        }
+    }
+
+    private void checkRowZ(ItemFrame frame, Location l, NodeList list, int indexX, int indexY) {
+        list.add(indexX, indexY, frame);
+        checkColumnZ(l, list, indexX);
+        int columns = 1;
+        while(true) {
+            indexX++;
+            Collection<ItemFrame> frames = l.clone().add(0, 0, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5);
+            if (frames.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames) {
+                list.add(indexX, indexY, f);
+            }
+            checkColumnZ(l, list, indexX);
+            columns++;
+        }
+        indexX = 0;
+        while(true) {
+            indexX++;
+            Collection<ItemFrame> frames = l.clone().add(0, 0, -indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0.5, 0.5);
+            if (frames.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames) {
+                list.add(-indexX, indexY, f);
+            }
+            checkColumnZ(l, list, -indexX);
+            columns++;
+        }
+        list.columns = columns;
+        list.rows = list.size() / columns;
+    }
+
+    private void checkColumnZ(Location l, NodeList list, int indexX) {
+        int indexY = 0;
+        while(true) {
+            indexY++;
+            Collection<ItemFrame> frames1 = l.clone().add(0, indexY, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5);
+            if (frames1.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames1) {
+                list.add(indexX, indexY, f);
+            }
+        }
+        indexY = 0;
+        while(true) {
+            indexY++;
+            Collection<ItemFrame> frames1 = l.clone().add(0, -indexY, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5);
+            if (frames1.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames1) {
+                list.add(indexX, -indexY, f);
+            }
+        }
+    }
+
+    private void checkRowY(ItemFrame frame, Location l, NodeList list, int indexX, int indexY) {
+        list.add(indexX, indexY, frame);
+        checkColumnY(l, list, indexX);
+        int columns = 1;
+        while(true) {
+            indexX++;
+            Collection<ItemFrame> frames = l.clone().add(indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            if (frames.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames) {
+                list.add(indexX, indexY, f);
+            }
+            checkColumnY(l, list, indexX);
+            columns++;
+        }
+        indexX = 0;
+        while(true) {
+            indexX++;
+            Collection<ItemFrame> frames = l.clone().add(-indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0.5, 0);
+            if (frames.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames) {
+                list.add(-indexX, indexY, f);
+            }
+            checkColumnY(l, list, -indexX);
+            columns++;
+        }
+        list.columns = columns;
+        list.rows = list.size() / columns;
+    }
+
+    private void checkColumnY(Location l, NodeList list, int indexX) {
+        int indexY = 0;
+        while(true) {
+            indexY++;
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, 0, indexY).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            if (frames1.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames1) {
+                list.add(indexX, indexY, f);
+            }
+        }
+        indexY = 0;
+        while(true) {
+            indexY++;
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, 0, -indexY).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            if (frames1.size() == 0) {
+                break;
+            }
+            for (ItemFrame f : frames1) {
+                list.add(indexX, -indexY, f);
+            }
+        }
+    }
+
+
 }

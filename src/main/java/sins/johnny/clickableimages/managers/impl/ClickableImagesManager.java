@@ -3,10 +3,12 @@ package sins.johnny.clickableimages.managers.impl;
 import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import sins.johnny.clickableimages.cons.ClickableImage;
@@ -75,20 +77,29 @@ public class ClickableImagesManager implements Manager {
 
     public void initMap(ItemFrame item) {
         ClickableImage image = getImage(item.getLocation());
-        if (image == null) return;
+        if (image == null) {
+          return;
+        }
 
         Pair<Integer, Integer> axis = findGrid(image, item.getLocation());
-        if (axis == null) return;
+        if (axis == null) {
+          return;
+        }
+
+        ItemStack m = new ItemStack(Material.FILLED_MAP);
+        MapMeta meta = (MapMeta) m.getItemMeta();
 
         BufferedImage bfIm = image.getAsset().getImage(axis.getFirst(), axis.getSecond());
-        MapView map = Bukkit.createMap(item.getWorld());
+        meta.setMapView(Bukkit.createMap(item.getWorld()));
+        meta.getMapView().getRenderers().clear();
 
-        map.getRenderers().clear();
-
-        Renderer renderer = Renderer.installRenderer(map);
+        Renderer renderer = Renderer.installRenderer(meta.getMapView());
         renderer.setImage(bfIm);
-        map.addRenderer(renderer);
-        item.setItem(ItemUtils.createMapItem(map.getId()));
+        meta.getMapView().addRenderer(renderer);
+
+        m.setItemMeta(meta);
+        item.setItem(m);
+        item.setVisible(false);
     }
 
     public Pair<Integer, Integer> findGrid(ClickableImage image, Location location) {
@@ -108,7 +119,12 @@ public class ClickableImagesManager implements Manager {
     }
 
     public ClickableImage getImage(Location location) {
-        return images.stream().filter(image -> image.getGrid().stream().anyMatch(row -> row.stream().anyMatch(loc -> loc.equals(location)))).findFirst().orElse(null);
+        for (ClickableImage image : images) {
+            if (image.getGrid().stream().anyMatch(l -> l.stream().anyMatch(l1 -> l1.equals(location)))) {
+                return image;
+            }
+        }
+        return null;
     }
 
 }
