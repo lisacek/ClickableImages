@@ -1,5 +1,11 @@
 messages:
-  list:
-    head: "-------[Images]"
-    line: "&7{0}: &7- &e{1} ({2})"
-    foot: ""
+  help:
+    - "/cimg place <asset> - Right click on an itemframe to create a clickable image"
+    - "/cimg delete - Right click on the image to delete it"
+    - "/cimg asset <asset> - See info about an asset"
+  place: "&aNow you can right-click on an itemframe to place it. &7(%rows%x%columns%)"
+  delete: "&cNow you can right-click on an itemframe to delete it."
+  asset-not-found: "&cAsset not found."
+  asset-info:
+    - "&aAsset info:"
+    - "%rows%x%columns%"

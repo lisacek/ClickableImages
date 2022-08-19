@@ -1,15 +1,9 @@
 name: ClickableImages
 version: '${project.version}'
-main: sins.johnny.clickableimages.ClickableImages
-author: JohnnySins
+main: me.lisacek.clickableimages.ClickableImages
+author: Lisacek
 api-version: 1.16
 commands:
-  place:
-    description: Place an image on the map
-    usage: /place <image>
-  delete:
-    description: List all images on the map
-    usage: /list
-  asset:
-    description: Information about an image
-    usage: /asset <image>
+  clickableimages:
+    description: "Create clickable images"
+    aliases: ["clickableimage", "ci", "cimages", "cimg", "cmig", "cimage"]
