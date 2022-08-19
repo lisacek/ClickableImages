@@ -102,7 +102,7 @@ public class Asset {
             Collections.reverse(grid);
         }
 
-        ClickableImage image = new ClickableImage(file.getName() + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml", file.getName(), Lists.newArrayList("[MSG] Hi! This image is created by " + p.getName()), grid);
+        ClickableImage image = new ClickableImage(file.getName() + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml", file.getName(), Lists.newArrayList("[MSG] &eThis image was created by " + p.getName() + "."), grid);
         image.save();
         Managers.getManager(ClickableImagesManager.class).getImages().add(image);
         return image;

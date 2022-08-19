@@ -139,4 +139,22 @@ public class ClickableImagesManager implements Manager {
         return null;
     }
 
+    public void addAction(ClickableImage image, String action) {
+        image.getActions().add(action);
+        image.save();
+    }
+
+    public void removeAction(ClickableImage image, int index) {
+        image.getActions().remove(index);
+        image.save();
+    }
+
+    public ClickableImage getImage(String name) {
+        for (ClickableImage image : images) {
+            if (image.getName().equals(name)) {
+                return image;
+            }
+        }
+        return null;
+    }
 }

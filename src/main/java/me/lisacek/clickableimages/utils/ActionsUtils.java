@@ -16,11 +16,12 @@ public class ActionsUtils {
 
         switch (type) {
             case "MSG":
-                p.sendMessage(Colors.translateColors(String.join(" ", args2)));
+                p.sendMessage(Colors.translateColors(String.join(" ", args2)
+                        .replace("%player%", p.getName())));
                 break;
-
             case "CMD":
-                p.getServer().dispatchCommand(p.getServer().getConsoleSender(), String.join(" ", args2));
+                p.getServer().dispatchCommand(p.getServer().getConsoleSender(), String.join(" ", args2)
+                        .replace("%player%", p.getName()));
                 break;
         }
     }

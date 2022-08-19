@@ -82,7 +82,7 @@ public class ClickableImage {
             }
         }
 
-        File file = new File(folder, image + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml");
+        File file = new File(folder, name);
         try {
             file.createNewFile();
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
