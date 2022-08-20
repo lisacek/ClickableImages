@@ -23,21 +23,19 @@ public class ClickListener implements Listener {
     public void onClick(PlayerInteractEntityEvent event) {
         if (event.getRightClicked() == null) return;
         if (event.getRightClicked().getType() != EntityType.ITEM_FRAME) return;
+        Location location = event.getRightClicked().getLocation();
+        ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(location);
+        if (image == null) return;
         if (!event.getPlayer().hasPermission("clickableimages.use")) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
-        Location location = event.getRightClicked().getLocation();
-        ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(location);
-
-        if(!image.getPermission().equalsIgnoreCase("none") && !event.getPlayer().hasPermission(image.getPermission())) {
+        if (!image.getPermission().equalsIgnoreCase("none") && !event.getPlayer().hasPermission(image.getPermission())) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
-
-        if (image == null) return;
         event.setCancelled(true);
         image.run(event.getPlayer());
     }
@@ -47,19 +45,20 @@ public class ClickListener implements Listener {
         if (event.getEntityType() != EntityType.ITEM_FRAME) return;
         if (!(event.getDamager() instanceof Player)) return;
         Player player = (Player) event.getDamager();
-        if (!player.hasPermission("clickableimages.use")) {
-            event.setCancelled(true);
-            player.sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
-            return;
-        }
+
         Location location = event.getEntity().getLocation();
         ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(location);
-        if(!image.getPermission().equalsIgnoreCase("none") && !player.hasPermission(image.getPermission())) {
+        if (image == null) return;
+        if (!player.hasPermission("clickableimages.use") && !player.hasPermission("clickableimages.admin")) {
             event.setCancelled(true);
             player.sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
-        if (image == null) return;
+        if (!image.getPermission().equalsIgnoreCase("none") && !player.hasPermission(image.getPermission())) {
+            event.setCancelled(true);
+            player.sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
+            return;
+        }
         event.setCancelled(true);
         image.run(player);
     }

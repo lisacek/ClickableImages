@@ -9,19 +9,22 @@ import me.lisacek.clickableimages.managers.impl.ClickableImagesManager;
 import me.lisacek.clickableimages.managers.impl.DeleteManager;
 import me.lisacek.clickableimages.managers.impl.PlacingManager;
 import me.lisacek.clickableimages.utils.Colors;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
-public class ClickableImagesCommand implements CommandExecutor {
+public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
 
     private final ClickableImages plugin = ClickableImages.getInstance();
     private final YamlConfiguration config = plugin.getConfig();
@@ -102,8 +105,10 @@ public class ClickableImagesCommand implements CommandExecutor {
                     return true;
                 }
                 if (args.length < 2) {
-                    sender.sendMessage(Colors.translateColors("&7/cimg &bimages &c<page>"));
-                    return true;
+                    String[] newArgs = new String[args.length + 1];
+                    System.arraycopy(args, 0, newArgs, 0, args.length);
+                    newArgs[args.length] = "1";
+                    args = newArgs;
                 }
                 int page = Integer.parseInt(args[1]);
                 Collection<ClickableImage> images = Managers.getManager(ClickableImagesManager.class).getImages();
@@ -152,8 +157,10 @@ public class ClickableImagesCommand implements CommandExecutor {
                     return true;
                 }
                 if (args.length < 2) {
-                    sender.sendMessage(Colors.translateColors("&7/cimg &bassets &c<page>"));
-                    return true;
+                    String[] newArgs = new String[args.length + 1];
+                    System.arraycopy(args, 0, newArgs, 0, args.length);
+                    newArgs[args.length] = "1";
+                    args = newArgs;
                 }
                 page = Integer.parseInt(args[1]);
                 Collection<Asset> assets = Managers.getManager(AssetsManager.class).getAssets();
@@ -305,7 +312,7 @@ public class ClickableImagesCommand implements CommandExecutor {
                             try {
                                 Integer.parseInt(args[3]);
                             } catch (NumberFormatException e) {
-                                sender.sendMessage(Colors.translateColors(args[3]  + " is not a number!"));
+                                sender.sendMessage(Colors.translateColors(args[3] + " is not a number!"));
                                 return true;
                             }
                             int index = Integer.parseInt(args[3]);
@@ -341,4 +348,93 @@ public class ClickableImagesCommand implements CommandExecutor {
         }
     }
 
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
+        List<String> data = new ArrayList<>();
+        data.add("place");
+        data.add("delete");
+        data.add("asset");
+        data.add("images");
+        data.add("assets");
+        data.add("action");
+        data.add("info");
+        data.add("help");
+        data.add("reload");
+        List<String> finalData = new ArrayList<>();
+        if (args.length == 1) {
+            StringUtil.copyPartialMatches(args[0], data, finalData);
+            Collections.sort(finalData);
+            return finalData;
+        }
+        if (args.length == 2) {
+            switch (args[0]) {
+                case "action":
+                    data.clear();
+                    data.add("add");
+                    data.add("remove");
+                    StringUtil.copyPartialMatches(args[1], data, finalData);
+                    Collections.sort(finalData);
+                    return finalData;
+                case "place":
+                case "asset":
+                    data.clear();
+                    Managers.getManager(AssetsManager.class).getAssets().forEach(a -> {
+                        data.add(a.getFile().getName());
+                    });
+                    StringUtil.copyPartialMatches(args[1], data, finalData);
+                    Collections.sort(finalData);
+                    return finalData;
+                default:
+                    return Collections.emptyList();
+            }
+        }
+        if (args.length == 3) {
+            if ("action".equals(args[0])) {
+                data.clear();
+                Player player = (Player) sender;
+                Collection<ItemFrame> frames = player.getLocation().getNearbyEntitiesByType(ItemFrame.class, 2);
+                ClickableImage nearest = null;
+                for (ItemFrame frame : frames) {
+                    ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(frame.getLocation());
+                    if (image != null) {
+                        nearest = image;
+                        break;
+                    }
+                }
+
+                if(nearest != null) {
+                    data.add(nearest.getName());
+                }
+                return data;
+            }
+            return Collections.emptyList();
+        }
+        if (args.length == 4) {
+            if ("action".equals(args[0]) && "add".equals(args[1])) {
+                data.clear();
+                data.add("[PERM]");
+                data.add("[MSG]");
+                data.add("[CMD]");
+                StringUtil.copyPartialMatches(args[3], data, finalData);
+                Collections.sort(finalData);
+                return finalData;
+            }
+            if ("action".equals(args[0]) && "remove".equals(args[1])) {
+                data.clear();
+                data.add("[PERM]");
+                ClickableImage ci = Managers.getManager(ClickableImagesManager.class).getImages().stream().filter(i -> Objects.equals(i.getName(), args[2])).findFirst().orElse(null);
+                if (ci != null) {
+                    for (int i = 0; i < ci.getActions().size(); i++) {
+                        data.add(i + "");
+                    }
+                }
+                StringUtil.copyPartialMatches(args[3], data, finalData);
+                Collections.sort(finalData);
+                return finalData;
+            }
+            return Collections.emptyList();
+        }
+        return Collections.emptyList();
+    }
 }
