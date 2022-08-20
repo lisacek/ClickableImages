@@ -54,9 +54,8 @@ public class ClickableImagesCommand implements CommandExecutor {
                 for (int i = 0; i < asset.getRows(); i++) {
                     StringBuilder row = new StringBuilder();
                     for (int j = 0; j < asset.getColumns(); j++) {
-                        row.append("|_");
+                        row.append("☐");
                     }
-                    row.append("|");
                     grid.add(row.toString());
                 }
 

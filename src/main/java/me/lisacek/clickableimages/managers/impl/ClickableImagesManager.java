@@ -1,6 +1,8 @@
 package me.lisacek.clickableimages.managers.impl;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import me.lisacek.clickableimages.ClickableImages;
 import me.lisacek.clickableimages.cons.ClickableImage;
 import me.lisacek.clickableimages.cons.Pair;
@@ -11,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -18,6 +21,7 @@ import org.bukkit.inventory.meta.MapMeta;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,17 +57,37 @@ public class ClickableImagesManager implements Manager {
 
         for (File file : Objects.requireNonNull(folder.listFiles())) {
             if (!file.getName().endsWith(".yml")) continue;
-
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-
             String image = config.getString("image");
             List<String> actions = config.getStringList("actions");
             List<List<Location>> locations = Lists.newArrayList();
             int rows = config.getConfigurationSection("locations").getKeys(false).size();
+            boolean isValid = true;
             for (int i = 0; i < rows; i++) {
-                locations.add((List<Location>) config.getList("locations." + i));
+                List<JsonObject> lcs = Lists.newArrayList();
+
+                config.getStringList("locations." + i).forEach(o -> {
+                    JsonParser parser = new JsonParser();
+                    JsonObject json = parser.parse(o).getAsJsonObject();
+                    lcs.add(json);
+                });
+
+                List<Location> finalLocs = Lists.newArrayList();
+                for (JsonObject lc : lcs) {
+                    World world = Bukkit.getWorld(lc.get("world").getAsString());
+                    if (world == null) {
+                        isValid = false;
+                        break;
+                    }
+                    finalLocs.add(new Location(Bukkit.getWorld(lc.get("world").getAsString()), lc.get("x").getAsDouble(), lc.get("y").getAsDouble(), lc.get("z").getAsDouble(), lc.get("yaw").getAsFloat(), lc.get("pitch").getAsFloat()));
+                }
+                locations.add(finalLocs);
             }
-            images.add(new ClickableImage(file.getName(), image, actions, locations));
+            if (!isValid) {
+                ClickableImages.getInstance().getConsole().warn("&cWorld used for creating image: &e" + file.getName() + " &cdoesn't exist! This image will be ignored.");
+            } else {
+                images.add(new ClickableImage(file.getName(), image, actions, locations));
+            }
         }
     }
 

@@ -9,11 +9,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import me.lisacek.clickableimages.managers.Managers;
 import me.lisacek.clickableimages.managers.impl.ClickableImagesManager;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 public class ClickListener implements Listener {
 
     @EventHandler
-    public void onClick(PlayerInteractAtEntityEvent event) {
+    public void onClick(PlayerInteractEntityEvent event) {
         if(event.getRightClicked() == null) return;
         if(event.getRightClicked().getType() != EntityType.ITEM_FRAME) return;
 

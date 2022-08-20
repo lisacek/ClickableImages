@@ -1,5 +1,7 @@
 package me.lisacek.clickableimages.cons;
 
+import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
 import me.lisacek.clickableimages.ClickableImages;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,6 +14,7 @@ import me.lisacek.clickableimages.utils.ActionsUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClickableImage {
@@ -92,9 +95,19 @@ public class ClickableImage {
             List<List<Location>> grid = getGrid();
             for (int i = 0; i < grid.size(); i++) {
                 List<Location> row = grid.get(i);
-                config.set("locations." + i, row);
+                List<String> preLocations = Lists.newArrayList();
+                for (Location location : row) {
+                    JsonObject json = new JsonObject();
+                    json.addProperty("x", location.getX());
+                    json.addProperty("y", location.getY());
+                    json.addProperty("z", location.getZ());
+                    json.addProperty("pitch", location.getPitch());
+                    json.addProperty("yaw", location.getYaw());
+                    json.addProperty("world", location.getWorld().getName());
+                    preLocations.add(json.toString());
+                }
+                config.set("locations." + i, preLocations);
             }
-
             config.save(file);
         } catch (IOException e) {
             throw new RuntimeException(e);

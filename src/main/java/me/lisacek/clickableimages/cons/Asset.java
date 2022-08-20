@@ -2,6 +2,7 @@ package me.lisacek.clickableimages.cons;
 
 import com.google.common.collect.Lists;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -12,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class Asset {
 
@@ -115,7 +117,7 @@ public class Asset {
         int columns = 1;
         while(true) {
             indexX++;
-            Collection<ItemFrame> frames = l.clone().add(indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            Collection<ItemFrame> frames = l.clone().add(indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames.size() == 0) {
                 break;
             }
@@ -128,7 +130,7 @@ public class Asset {
         indexX = 0;
         while(true) {
             indexX++;
-            Collection<ItemFrame> frames = l.clone().add(-indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0.5, 0);
+            Collection<ItemFrame> frames = l.clone().add(-indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0.5, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames.size() == 0) {
                 break;
             }
@@ -146,7 +148,7 @@ public class Asset {
         int indexY = 0;
         while(true) {
             indexY++;
-            Collection<ItemFrame> frames1 = l.clone().add(indexX, indexY, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, indexY, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames1.size() == 0) {
                 break;
             }
@@ -157,7 +159,7 @@ public class Asset {
         indexY = 0;
         while(true) {
             indexY++;
-            Collection<ItemFrame> frames1 = l.clone().add(indexX, -indexY, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, -indexY, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames1.size() == 0) {
                 break;
             }
@@ -173,7 +175,7 @@ public class Asset {
         int columns = 1;
         while(true) {
             indexX++;
-            Collection<ItemFrame> frames = l.clone().add(0, 0, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5);
+            Collection<ItemFrame> frames = l.clone().add(0, 0, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames.size() == 0) {
                 break;
             }
@@ -186,7 +188,7 @@ public class Asset {
         indexX = 0;
         while(true) {
             indexX++;
-            Collection<ItemFrame> frames = l.clone().add(0, 0, -indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0.5, 0.5);
+            Collection<ItemFrame> frames = l.clone().add(0, 0, -indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0.5, 0.5).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames.size() == 0) {
                 break;
             }
@@ -204,7 +206,7 @@ public class Asset {
         int indexY = 0;
         while(true) {
             indexY++;
-            Collection<ItemFrame> frames1 = l.clone().add(0, indexY, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5);
+            Collection<ItemFrame> frames1 = l.clone().add(0, indexY, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames1.size() == 0) {
                 break;
             }
@@ -215,7 +217,7 @@ public class Asset {
         indexY = 0;
         while(true) {
             indexY++;
-            Collection<ItemFrame> frames1 = l.clone().add(0, -indexY, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5);
+            Collection<ItemFrame> frames1 = l.clone().add(0, -indexY, indexX).getNearbyEntitiesByType(ItemFrame.class, 0, 0, 0.5).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames1.size() == 0) {
                 break;
             }
@@ -231,7 +233,7 @@ public class Asset {
         int columns = 1;
         while(true) {
             indexX++;
-            Collection<ItemFrame> frames = l.clone().add(indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            Collection<ItemFrame> frames = l.clone().add(indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames.size() == 0) {
                 break;
             }
@@ -244,7 +246,7 @@ public class Asset {
         indexX = 0;
         while(true) {
             indexX++;
-            Collection<ItemFrame> frames = l.clone().add(-indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0.5, 0);
+            Collection<ItemFrame> frames = l.clone().add(-indexX, 0, 0).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0.5, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames.size() == 0) {
                 break;
             }
@@ -262,7 +264,7 @@ public class Asset {
         int indexY = 0;
         while(true) {
             indexY++;
-            Collection<ItemFrame> frames1 = l.clone().add(indexX, 0, indexY).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, 0, indexY).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames1.size() == 0) {
                 break;
             }
@@ -273,7 +275,7 @@ public class Asset {
         indexY = 0;
         while(true) {
             indexY++;
-            Collection<ItemFrame> frames1 = l.clone().add(indexX, 0, -indexY).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0);
+            Collection<ItemFrame> frames1 = l.clone().add(indexX, 0, -indexY).getNearbyEntitiesByType(ItemFrame.class, 0.5, 0, 0).stream().filter(f -> f.getItem().getType() == Material.AIR).collect(Collectors.toList());
             if (frames1.size() == 0) {
                 break;
             }
