@@ -13,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -21,7 +20,6 @@ import org.bukkit.inventory.meta.MapMeta;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -59,6 +57,7 @@ public class ClickableImagesManager implements Manager {
             if (!file.getName().endsWith(".yml")) continue;
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
             String image = config.getString("image");
+            String permission = config.getString("permission", "none");
             List<String> actions = config.getStringList("actions");
             List<List<Location>> locations = Lists.newArrayList();
             int rows = config.getConfigurationSection("locations").getKeys(false).size();
@@ -86,7 +85,7 @@ public class ClickableImagesManager implements Manager {
             if (!isValid) {
                 ClickableImages.getInstance().getConsole().warn("&cWorld used for creating image: &e" + file.getName() + " &cdoesn't exist! This image will be ignored.");
             } else {
-                images.add(new ClickableImage(file.getName(), image, actions, locations));
+                images.add(new ClickableImage(file.getName(), image, permission, actions, locations));
             }
         }
     }
@@ -165,6 +164,16 @@ public class ClickableImagesManager implements Manager {
 
     public void addAction(ClickableImage image, String action) {
         image.getActions().add(action);
+        image.save();
+    }
+
+    public void addPermission(ClickableImage image, String permission) {
+        image.setPermission(permission);
+        image.save();
+    }
+
+    public void removePermission(ClickableImage image) {
+        image.setPermission("none");
         image.save();
     }
 

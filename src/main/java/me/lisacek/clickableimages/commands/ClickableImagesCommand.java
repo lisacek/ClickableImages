@@ -37,6 +37,10 @@ public class ClickableImagesCommand implements CommandExecutor {
 
         switch (args[0].toLowerCase()) {
             case "asset":
+                if (!sender.hasPermission("clickableimages.asset") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 if (args.length < 2) {
                     sender.sendMessage(Colors.translateColors("&7/cimg &basset &c<asset>"));
                     return true;
@@ -80,7 +84,11 @@ public class ClickableImagesCommand implements CommandExecutor {
                 });
                 return true;
             case "delete":
-                if(Managers.getManager(DeleteManager.class).isRunning(sender.getName())) {
+                if (!sender.hasPermission("clickableimages.delete") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
+                if (Managers.getManager(DeleteManager.class).isRunning(sender.getName())) {
                     Managers.getManager(DeleteManager.class).stop(sender.getName());
                     sender.sendMessage(Colors.translateColors(config.getString("messages.delete-cancel")));
                     return true;
@@ -89,6 +97,10 @@ public class ClickableImagesCommand implements CommandExecutor {
                 sender.sendMessage(Colors.translateColors(config.getString("messages.delete")));
                 return true;
             case "images":
+                if (!sender.hasPermission("clickableimages.images") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 if (args.length < 2) {
                     sender.sendMessage(Colors.translateColors("&7/cimg &bimages &c<page>"));
                     return true;
@@ -135,6 +147,10 @@ public class ClickableImagesCommand implements CommandExecutor {
                 );
                 return true;
             case "assets":
+                if (!sender.hasPermission("clickableimages.assets") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 if (args.length < 2) {
                     sender.sendMessage(Colors.translateColors("&7/cimg &bassets &c<page>"));
                     return true;
@@ -178,7 +194,11 @@ public class ClickableImagesCommand implements CommandExecutor {
                         .replace("%max%", (int) Math.ceil(assets.size() / 10.0) + ""));
                 return true;
             case "place":
-                if(Managers.getManager(PlacingManager.class).getAsset(sender.getName()) != null) {
+                if (!sender.hasPermission("clickableimages.place") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
+                if (Managers.getManager(PlacingManager.class).getAsset(sender.getName()) != null) {
                     Managers.getManager(PlacingManager.class).removeAsset(sender.getName());
                     sender.sendMessage(Colors.translateColors(config.getString("messages.place-cancel")));
                     return true;
@@ -198,6 +218,10 @@ public class ClickableImagesCommand implements CommandExecutor {
                         .replace("%columns%", "" + asset.getColumns()));
                 return true;
             case "info":
+                if (!sender.hasPermission("clickableimages.info") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 if (!(sender instanceof Player)) return true;
                 Player player = (Player) sender;
                 Collection<ItemFrame> itemFrames = player.getWorld().getNearbyEntitiesByType(ItemFrame.class, player.getLocation(), 1);
@@ -221,11 +245,16 @@ public class ClickableImagesCommand implements CommandExecutor {
                         player.sendMessage(Colors.translateColors(m)
                                 .replace("%rows%", clickableImage.getRows() + "")
                                 .replace("%file%", clickableImage.getName())
+                                .replace("%permission%", clickableImage.getPermission())
                                 .replace("%columns%", clickableImage.getColumns() + ""));
                     }
                 });
                 return true;
             case "action":
+                if (!sender.hasPermission("clickableimages.action") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 if (args.length < 2) {
                     sender.sendMessage(Colors.translateColors("&7/cimg &baction &c<action>"));
                     return true;
@@ -241,8 +270,23 @@ public class ClickableImagesCommand implements CommandExecutor {
                             sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
                             return true;
                         }
-                        Managers.getManager(ClickableImagesManager.class).addAction(image, String.join(" ", args).substring(11)
-                                .replace(args[2] + " ", ""));
+                        String action = String.join(" ", args).substring(11)
+                                .replace(args[2] + " ", "");
+
+                        String type = action.split(" ")[0];
+                        switch (type.toUpperCase()) {
+                            case "[PERM]":
+                                image.setPermission(action.replace("[PERM] ", ""));
+                                break;
+                            case "[MSG]":
+                            case "[CMD]":
+                                image.getActions().add(action);
+                                break;
+                            default:
+                                sender.sendMessage(Colors.translateColors(config.getString("messages.action-not-found")));
+                                return true;
+                        }
+                        image.save();
                         sender.sendMessage(Colors.translateColors(config.getString("messages.action-added")));
                         return true;
                     case "remove":
@@ -255,12 +299,22 @@ public class ClickableImagesCommand implements CommandExecutor {
                             sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
                             return true;
                         }
-                        int index = Integer.parseInt(args[3]);
-                        if (image.getActions().size() - 1 < index) {
-                            sender.sendMessage(Colors.translateColors(config.getString("messages.action-not-found")));
-                            return true;
+                        if (args[3].equalsIgnoreCase("[PERM]")) {
+                            image.setPermission("none");
+                        } else {
+                            try {
+                                Integer.parseInt(args[3]);
+                            } catch (NumberFormatException e) {
+                                sender.sendMessage(Colors.translateColors(args[3]  + " is not a number!"));
+                                return true;
+                            }
+                            int index = Integer.parseInt(args[3]);
+                            if (image.getActions().size() - 1 < index) {
+                                sender.sendMessage(Colors.translateColors(config.getString("messages.action-not-found")));
+                                return true;
+                            }
+                            Managers.getManager(ClickableImagesManager.class).removeAction(image, index);
                         }
-                        Managers.getManager(ClickableImagesManager.class).removeAction(image, index);
                         sender.sendMessage(Colors.translateColors(config.getString("messages.action-removed")));
                         return true;
                     default:
@@ -268,10 +322,18 @@ public class ClickableImagesCommand implements CommandExecutor {
                         return true;
                 }
             case "reload":
+                if (!sender.hasPermission("clickableimages.reload") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 Managers.restart();
                 sender.sendMessage(Colors.translateColors("&aPlugin was reloaded!"));
                 return true;
             default:
+                if (!sender.hasPermission("clickableimages.help") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
                 config.getStringList("messages.help").forEach(m -> {
                     sender.sendMessage(Colors.translateColors(m));
                 });

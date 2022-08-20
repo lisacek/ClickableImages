@@ -8,13 +8,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import me.lisacek.clickableimages.managers.Managers;
 import me.lisacek.clickableimages.managers.impl.AssetsManager;
-import me.lisacek.clickableimages.managers.impl.ClickableImagesManager;
 import me.lisacek.clickableimages.utils.ActionsUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClickableImage {
@@ -22,12 +20,16 @@ public class ClickableImage {
     private final String name;
 
     private final String image;
+
+    private String permission;
+
     private final List<String> actions;
     private final List<List<Location>> locations;
 
-    public ClickableImage(String name, String image, List<String> actions, List<List<Location>> locations) {
+    public ClickableImage(String name, String image, String permission, List<String> actions, List<List<Location>> locations) {
         this.name = name;
         this.image = image;
+        this.permission = permission;
         this.actions = actions;
         this.locations = locations;
     }
@@ -58,6 +60,9 @@ public class ClickableImage {
         return locations.get(0).size();
     }
 
+    public String getPermission() {
+        return permission;
+    }
 
     public Asset getAsset() {
         return Managers.getManager(AssetsManager.class).getAsset(image);
@@ -91,6 +96,7 @@ public class ClickableImage {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
             config.set("image", image);
             config.set("actions", actions);
+            config.set("permission", permission);
 
             List<List<Location>> grid = getGrid();
             for (int i = 0; i < grid.size(); i++) {
@@ -112,6 +118,10 @@ public class ClickableImage {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void setPermission(String permission) {
+        this.permission = permission;
     }
 
     public void delete() {

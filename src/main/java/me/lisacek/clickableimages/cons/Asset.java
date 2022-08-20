@@ -1,6 +1,7 @@
 package me.lisacek.clickableimages.cons;
 
 import com.google.common.collect.Lists;
+import me.lisacek.clickableimages.ClickableImages;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -84,7 +85,7 @@ public class Asset {
         }
 
         list.sort(facing == BlockFace.NORTH || facing == BlockFace.EAST);
-        return new Pair<>(getTotalImages() == list.size(), list);
+        return new Pair<>(getTotalImages() == list.size() && list.size() <= ClickableImages.getInstance().getConfig().getInt("plugin.max-item-frames", 64), list);
     }
 
     public ClickableImage place(NodeList list, Player p, ItemFrame frame) {
@@ -104,7 +105,7 @@ public class Asset {
             Collections.reverse(grid);
         }
 
-        ClickableImage image = new ClickableImage(file.getName() + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml", file.getName(), Lists.newArrayList("[MSG] &eThis image was created by " + p.getName() + "."), grid);
+        ClickableImage image = new ClickableImage(file.getName() + "-" + Managers.getManager(ClickableImagesManager.class).getImages().size() + ".yml", file.getName(), "none", Lists.newArrayList("[MSG] &eThis image was created by " + p.getName() + "."), grid);
         image.save();
         Managers.getManager(ClickableImagesManager.class).getImages().add(image);
         return image;

@@ -1,4 +1,16 @@
+#
+#  ClickableImages
+#
+plugin:
+  # Max ItemFrames for one image
+  # Default: 64
+  # It is recommended keep max on 64 or lower
+  max-item-frames: 64
+  # Automatically pulls the latest version of the plugin
+  auto-update: true
+
 messages:
+  no-permission: "&cYou do not have permission to do that."
   help:
     - "&8&l&m———————————————&8&l[ &#03fc7b&lClickableImages &8&l]&8&l&m———————————————"
     - " &a/cmig place <asset> &8- &7Right click on an itemframe to create a clickable image"
@@ -32,6 +44,7 @@ messages:
     - "&8&l&m———————————————&8&l[ &3&lINFO &8&l]&8&l&m———————————————"
     - " &7File Image: &b%file%"
     - " &7Size: &6%rows%&8x&6%columns%"
+    - " &7Permission: &c%permission%"
     - " &7Actions:"
     - " %actions%"
     - "&8&l&m——————————————————————————————————————"
