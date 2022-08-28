@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClickableImagesManager implements Manager {
 
@@ -189,5 +190,13 @@ public class ClickableImagesManager implements Manager {
             }
         }
         return null;
+    }
+
+    public int getTotalLocations() {
+        AtomicInteger total = new AtomicInteger();
+        for (ClickableImage image : images) {
+            image.getGrid().forEach(l -> total.addAndGet(l.size()));
+        }
+        return total.get();
     }
 }

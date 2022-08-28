@@ -8,6 +8,7 @@ import me.lisacek.clickableimages.managers.impl.AssetsManager;
 import me.lisacek.clickableimages.managers.impl.ClickableImagesManager;
 import me.lisacek.clickableimages.managers.impl.DeleteManager;
 import me.lisacek.clickableimages.managers.impl.PlacingManager;
+import me.lisacek.clickableimages.utils.CPUDaemon;
 import me.lisacek.clickableimages.utils.Colors;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -22,12 +23,15 @@ import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
 
     private final ClickableImages plugin = ClickableImages.getInstance();
     private final YamlConfiguration config = plugin.getConfig();
+
+    private final DecimalFormat df = new DecimalFormat("#.##");
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
@@ -225,36 +229,47 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                         .replace("%columns%", "" + asset.getColumns()));
                 return true;
             case "info":
-                if (!sender.hasPermission("clickableimages.info") && !sender.hasPermission("clickableimages.admin")) {
+                if (args.length < 2) {
+                    if (!sender.hasPermission("clickableimages.info") && !sender.hasPermission("clickableimages.admin")) {
+                        sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                        return true;
+                    }
+                    if (!(sender instanceof Player)) return true;
+                    Player player = (Player) sender;
+                    Collection<ItemFrame> itemFrames = player.getWorld().getNearbyEntitiesByType(ItemFrame.class, player.getLocation(), 1);
+                    if (itemFrames.size() == 0) {
+                        player.sendMessage(Colors.translateColors(config.getString("messages.no-item-frame")));
+                        return true;
+                    }
+                    ItemFrame itemFrame = itemFrames.iterator().next();
+                    ClickableImage clickableImage = Managers.getManager(ClickableImagesManager.class).getImage(itemFrame.getLocation());
+                    if (clickableImage == null) {
+                        player.sendMessage(Colors.translateColors(config.getString("messages.no-item-frame")));
+                        return true;
+                    }
+
+                    buildInfo(player, clickableImage);
+                } else {
+                    String imageName = args[1];
+                    ClickableImage clickableImage = Managers.getManager(ClickableImagesManager.class).getImage(imageName);
+                    if (clickableImage == null) {
+                        sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
+                        return true;
+                    }
+                    buildInfo(sender, clickableImage);
+                }
+                return true;
+            case "status":
+                if (!sender.hasPermission("clickableimages.status") && !sender.hasPermission("clickableimages.admin")) {
                     sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
                     return true;
                 }
-                if (!(sender instanceof Player)) return true;
-                Player player = (Player) sender;
-                Collection<ItemFrame> itemFrames = player.getWorld().getNearbyEntitiesByType(ItemFrame.class, player.getLocation(), 1);
-                if (itemFrames.size() == 0) {
-                    player.sendMessage(Colors.translateColors(config.getString("messages.no-item-frame")));
-                    return true;
-                }
-                ItemFrame itemFrame = itemFrames.iterator().next();
-                ClickableImage clickableImage = Managers.getManager(ClickableImagesManager.class).getImage(itemFrame.getLocation());
-                if (clickableImage == null) {
-                    player.sendMessage(Colors.translateColors(config.getString("messages.no-item-frame")));
-                    return true;
-                }
-
-                config.getStringList("messages.image-info").forEach(m -> {
-                    if (m.contains("%actions%")) {
-                        clickableImage.getActions().forEach(a -> {
-                            player.sendMessage(Colors.translateColors("&7- &e" + a));
-                        });
-                    } else {
-                        player.sendMessage(Colors.translateColors(m)
-                                .replace("%rows%", clickableImage.getRows() + "")
-                                .replace("%file%", clickableImage.getName())
-                                .replace("%permission%", clickableImage.getPermission())
-                                .replace("%columns%", clickableImage.getColumns() + ""));
-                    }
+                config.getStringList("messages.status").forEach(l -> {
+                    sender.sendMessage(Colors.translateColors(
+                            l.replace("%images%", Managers.getManager(ClickableImagesManager.class).getImages().size() + "")
+                                    .replace("%assets%", Managers.getManager(AssetsManager.class).getAssets().size() + "")
+                                    .replace("%frames%", Managers.getManager(ClickableImagesManager.class).getTotalLocations() + "")
+                                    .replace("%cpu%",  df.format(CPUDaemon.get()) + "")));
                 });
                 return true;
             case "action":
@@ -348,6 +363,22 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
         }
     }
 
+    private void buildInfo(@NotNull CommandSender sender, ClickableImage clickableImage) {
+        config.getStringList("messages.image-info").forEach(m -> {
+            if (m.contains("%actions%")) {
+                clickableImage.getActions().forEach(a -> {
+                    sender.sendMessage(Colors.translateColors("&7- &e" + a));
+                });
+            } else {
+                sender.sendMessage(Colors.translateColors(m)
+                        .replace("%rows%", clickableImage.getRows() + "")
+                        .replace("%file%", clickableImage.getName())
+                        .replace("%permission%", clickableImage.getPermission())
+                        .replace("%columns%", clickableImage.getColumns() + ""));
+            }
+        });
+    }
+
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
@@ -357,6 +388,7 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
         data.add("asset");
         data.add("images");
         data.add("assets");
+        data.add("status");
         data.add("action");
         data.add("info");
         data.add("help");
@@ -385,6 +417,30 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                     StringUtil.copyPartialMatches(args[1], data, finalData);
                     Collections.sort(finalData);
                     return finalData;
+                case "images":
+                    data.clear();
+                    int size = Managers.getManager(ClickableImagesManager.class).getImages().size();
+                    int pages = size / 10;
+                    for (int i = 0; i <= pages; i++) {
+                        data.add((i + 1) + "");
+                    }
+                    return data;
+                case "info":
+                    data.clear();
+                    Managers.getManager(ClickableImagesManager.class).getImages().forEach(i -> {
+                        data.add(i.getName());
+                    });
+                    StringUtil.copyPartialMatches(args[1], data, finalData);
+                    Collections.sort(finalData);
+                    return finalData;
+                case "assets":
+                    data.clear();
+                    size = Managers.getManager(AssetsManager.class).getAssets().size();
+                    pages = size / 10;
+                    for (int i = 0; i <= pages; i++) {
+                        data.add((i + 1) + "");
+                    }
+                    return data;
                 default:
                     return Collections.emptyList();
             }
@@ -403,7 +459,7 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                     }
                 }
 
-                if(nearest != null) {
+                if (nearest != null) {
                     data.add(nearest.getName());
                 }
                 return data;

@@ -3,6 +3,7 @@ package me.lisacek.clickableimages;
 import me.lisacek.clickableimages.commands.ClickableImagesCommand;
 import me.lisacek.clickableimages.cons.ConsoleOutput;
 import me.lisacek.clickableimages.managers.impl.*;
+import me.lisacek.clickableimages.utils.CPUDaemon;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import me.lisacek.clickableimages.managers.Managers;
@@ -20,6 +21,7 @@ public final class ClickableImages extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        CPUDaemon.get();
         registerManagers();
         Objects.requireNonNull(getCommand("clickableimages")).setExecutor(new ClickableImagesCommand());
         console.info("Plugin was enabled! Made with &#fc0303<3 &7by &#fc0390Lisacek&7.");
