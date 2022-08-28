@@ -1,6 +1,5 @@
 package sins.johnny.clickableimages.utils;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.bukkit.entity.Player;
 
 public class ActionsUtils {

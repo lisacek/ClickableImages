@@ -21,18 +21,15 @@ public class PlaceListener implements Listener {
         if (!(entity instanceof ItemFrame)) {
             return;
         }
-
         PlacingManager placingManager = Managers.getManager(PlacingManager.class);
         Asset asset = placingManager.getAsset(e.getPlayer().getName());
-        if(asset == null) {
+        if (asset == null) {
             return;
         }
-
-        if(!asset.canPlace((ItemFrame) entity)) {
+        if (!asset.canPlace((ItemFrame) entity)) {
             e.getPlayer().sendMessage("You can't place this asset here!");
             return;
         }
-
         asset.place(e.getPlayer(), (ItemFrame) entity);
         placingManager.removeAsset(e.getPlayer().getName());
         Managers.getManager(ClickableImagesManager.class).initMaps();
