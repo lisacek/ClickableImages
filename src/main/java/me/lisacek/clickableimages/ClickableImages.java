@@ -44,6 +44,7 @@ public final class ClickableImages extends JavaPlugin {
         Managers.register(ClickableImagesManager.class);
         Managers.register(PlacingManager.class);
         Managers.register(DeleteManager.class);
+        Managers.register(ButtonManager.class);
     }
 
     @NotNull

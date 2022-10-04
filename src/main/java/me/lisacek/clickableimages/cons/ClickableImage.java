@@ -3,6 +3,7 @@ package me.lisacek.clickableimages.cons;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import me.lisacek.clickableimages.ClickableImages;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -24,13 +25,18 @@ public class ClickableImage {
     private String permission;
 
     private final List<String> actions;
+
+    private final List<Button> buttons;
+
     private final List<List<Location>> locations;
 
-    public ClickableImage(String name, String image, String permission, List<String> actions, List<List<Location>> locations) {
+
+    public ClickableImage(String name, String image, String permission, List<String> actions, List<Button> buttons, List<List<Location>> locations) {
         this.name = name;
         this.image = image;
         this.permission = permission;
         this.actions = actions;
+        this.buttons = buttons;
         this.locations = locations;
     }
 
@@ -68,9 +74,15 @@ public class ClickableImage {
         return Managers.getManager(AssetsManager.class).getAsset(image);
     }
 
-    public void run(Player p) {
-        for (String action : actions) {
-            ActionsUtils.runAction(p, action);
+    public void run(Player p, Button... button) {
+        if (button.length == 1) {
+            for (String action : button[0].getActions()) {
+                ActionsUtils.runAction(p, action);
+            }
+        } else {
+            for (String action : actions) {
+                ActionsUtils.runAction(p, action);
+            }
         }
     }
 
@@ -114,14 +126,38 @@ public class ClickableImage {
                 }
                 config.set("locations." + i, preLocations);
             }
+
+            try {
+                config.getConfigurationSection("buttons").getKeys(false).forEach(key -> {
+                    if (buttons.stream().noneMatch(button -> button.getCoords().equals(key))) {
+                        config.set("buttons." + key, null);
+                    }
+                });
+            } catch (Exception ignored) {}
+            buttons.forEach(button -> {
+                config.set("buttons." + button.getCoords() + ".actions", button.getActions());
+                config.set("buttons." + button.getCoords() + ".permission", button.getPermission());
+            });
             config.save(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    public List<Button> getButtons() {
+        return buttons;
+    }
+
     public void setPermission(String permission) {
         this.permission = permission;
+    }
+
+    public boolean isButton(String coords) {
+        return buttons.stream().anyMatch(button -> button.getCoords().equals(coords));
+    }
+
+    public Button getButton(String coords) {
+        return buttons.stream().filter(button -> button.getCoords().equals(coords)).findFirst().orElse(null);
     }
 
     public void delete() {
