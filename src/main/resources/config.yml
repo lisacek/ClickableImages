@@ -55,7 +55,7 @@ messages:
     delete: "&cNow right click on the image button to delete it. (Execute command again to cancel)"
     cancel: "&cCancelled action"
     invalid-action: "&cInvalid action"
-    not-found: "&cButton not found"
+    not-found: "&cButton not found."
 
   image-info:
     - "&8&l&m———————————————&8&l[ &3&lINFO &8&l]&8&l&m———————————————"
