@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.lisacek.clickableimages.ClickableImages;
+import me.lisacek.clickableimages.cons.Button;
 import me.lisacek.clickableimages.cons.ClickableImage;
 import me.lisacek.clickableimages.cons.Pair;
 import me.lisacek.clickableimages.cons.Renderer;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
@@ -60,6 +62,8 @@ public class ClickableImagesManager implements Manager {
             String image = config.getString("image");
             String permission = config.getString("permission", "none");
             List<String> actions = config.getStringList("actions");
+            List<Button> buttons = Lists.newArrayList();
+
             List<List<Location>> locations = Lists.newArrayList();
             int rows = config.getConfigurationSection("locations").getKeys(false).size();
             boolean isValid = true;
@@ -83,10 +87,19 @@ public class ClickableImagesManager implements Manager {
                 }
                 locations.add(finalLocs);
             }
+
+            try {
+                config.getConfigurationSection("buttons").getKeys(false).forEach(b -> {
+                    ConfigurationSection section = config.getConfigurationSection("buttons." + b);
+                    if (section == null) return;
+                    buttons.add(new Button(b, section.getStringList("actions"), section.getString("permission")));
+                });
+            } catch (Exception ignored) {}
+
             if (!isValid) {
                 ClickableImages.getInstance().getConsole().warn("&cWorld used for creating image: &e" + file.getName() + " &cdoesn't exist! This image will be ignored.");
             } else {
-                images.add(new ClickableImage(file.getName(), image, permission, actions, locations));
+                images.add(new ClickableImage(file.getName(), image, permission, actions, buttons, locations));
             }
         }
     }
@@ -122,6 +135,7 @@ public class ClickableImagesManager implements Manager {
         try {
             bfIm = image.getAsset().getImage(axis.getFirst(), axis.getSecond());
         } catch (Exception e) {
+            e.printStackTrace();
             ClickableImages.getInstance().getConsole().warn("Asset " + image.getAsset().getFile().getName() + " is smaller than " + image.getName() + " is!");
             return;
         }

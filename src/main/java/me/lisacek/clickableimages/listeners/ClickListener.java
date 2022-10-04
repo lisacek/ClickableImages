@@ -1,8 +1,11 @@
 package me.lisacek.clickableimages.listeners;
 
 import me.lisacek.clickableimages.ClickableImages;
+import me.lisacek.clickableimages.cons.Button;
 import me.lisacek.clickableimages.cons.ClickableImage;
+import me.lisacek.clickableimages.cons.Pair;
 import me.lisacek.clickableimages.utils.Colors;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -31,12 +34,24 @@ public class ClickListener implements Listener {
             event.getPlayer().sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
+        Pair<Integer, Integer> coords = Managers.getManager(ClickableImagesManager.class).findGrid(image, location);
+        String coordsString = coords.getFirst() + "+" + coords.getSecond();
+        event.setCancelled(true);
+        if(image.isButton(coordsString)) {
+            Button button = image.getButton(coordsString);
+            if (!button.getPermission().equalsIgnoreCase("none") && !event.getPlayer().hasPermission(button.getPermission())) {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
+                return;
+            }
+            image.run(event.getPlayer(), button);
+            return;
+        }
         if (!image.getPermission().equalsIgnoreCase("none") && !event.getPlayer().hasPermission(image.getPermission())) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
-        event.setCancelled(true);
         image.run(event.getPlayer());
     }
 
@@ -54,12 +69,24 @@ public class ClickListener implements Listener {
             player.sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
+        Pair<Integer, Integer> coords = Managers.getManager(ClickableImagesManager.class).findGrid(image, location);
+        String coordsString = coords.getFirst() + "+" + coords.getSecond();
+        event.setCancelled(true);
+        if(image.isButton(coordsString)) {
+            Button button = image.getButton(coordsString);
+            if (!button.getPermission().equalsIgnoreCase("none") && !player.hasPermission(button.getPermission())) {
+                event.setCancelled(true);
+                player.sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
+                return;
+            }
+            image.run(player, button);
+            return;
+        }
         if (!image.getPermission().equalsIgnoreCase("none") && !player.hasPermission(image.getPermission())) {
             event.setCancelled(true);
             player.sendMessage(Colors.translateColors(ClickableImages.getInstance().getConfig().getString("messages.no-permission")));
             return;
         }
-        event.setCancelled(true);
         image.run(player);
     }
 

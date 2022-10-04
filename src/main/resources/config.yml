@@ -48,6 +48,15 @@ messages:
   action-not-found: "&#03fc7b&lCMIG &8| &cAction not found."
   image-not-found: "&#03fc7b&lCMIG &8| &cImage not found."
   no-item-frame: "&#03fc7b&lCMIG &8| &cNo image found nearby."
+  button:
+    added: "&#03fc7b&lCMIG &8| &aButton added."
+    add: "&aNow you can right-click on an itemframe to add button. (Execute command again to cancel)"
+    edit: "&aNow type the action in the chat eg. [CMD] say help. (Execute command again to cancel)"
+    delete: "&cNow right click on the image button to delete it. (Execute command again to cancel)"
+    cancel: "&cCancelled action"
+    invalid-action: "&cInvalid action"
+    not-found: "&cButton not found"
+
   image-info:
     - "&8&l&m———————————————&8&l[ &3&lINFO &8&l]&8&l&m———————————————"
     - " &7File Image: &b%file%"

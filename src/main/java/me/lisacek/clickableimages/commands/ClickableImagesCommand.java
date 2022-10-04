@@ -2,16 +2,14 @@ package me.lisacek.clickableimages.commands;
 
 import me.lisacek.clickableimages.ClickableImages;
 import me.lisacek.clickableimages.cons.Asset;
+import me.lisacek.clickableimages.cons.Button;
 import me.lisacek.clickableimages.cons.ClickableImage;
+import me.lisacek.clickableimages.enums.Action;
 import me.lisacek.clickableimages.managers.Managers;
-import me.lisacek.clickableimages.managers.impl.AssetsManager;
-import me.lisacek.clickableimages.managers.impl.ClickableImagesManager;
-import me.lisacek.clickableimages.managers.impl.DeleteManager;
-import me.lisacek.clickableimages.managers.impl.PlacingManager;
+import me.lisacek.clickableimages.managers.impl.*;
 import me.lisacek.clickableimages.utils.CPUDaemon;
 import me.lisacek.clickableimages.utils.Colors;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -269,7 +267,7 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                             l.replace("%images%", Managers.getManager(ClickableImagesManager.class).getImages().size() + "")
                                     .replace("%assets%", Managers.getManager(AssetsManager.class).getAssets().size() + "")
                                     .replace("%frames%", Managers.getManager(ClickableImagesManager.class).getTotalLocations() + "")
-                                    .replace("%cpu%",  df.format(CPUDaemon.get()) + "")));
+                                    .replace("%cpu%", df.format(CPUDaemon.get()) + "")));
                 });
                 return true;
             case "action":
@@ -283,8 +281,13 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                 }
                 switch (args[1].toLowerCase()) {
                     case "add":
-                        if (args.length < 3) {
+                        if (args.length < 4) {
                             sender.sendMessage(Colors.translateColors("&7/cimg &baction &cadd <image> <action>"));
+                            return true;
+                        }
+                        if (Managers.getManager(DeleteManager.class).isRunning(sender.getName())) {
+                            Managers.getManager(DeleteManager.class).stop(sender.getName());
+                            sender.sendMessage(Colors.translateColors(config.getString("messages.delete-cancel")));
                             return true;
                         }
                         ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(args[2]);
@@ -312,7 +315,7 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                         sender.sendMessage(Colors.translateColors(config.getString("messages.action-added")));
                         return true;
                     case "remove":
-                        if (args.length < 3) {
+                        if (args.length < 4) {
                             sender.sendMessage(Colors.translateColors("&7/cimg &baction &cremove &c<action>"));
                             return true;
                         }
@@ -321,6 +324,7 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                             sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
                             return true;
                         }
+
                         if (args[3].equalsIgnoreCase("[PERM]")) {
                             image.setPermission("none");
                         } else {
@@ -351,6 +355,117 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                 Managers.restart();
                 sender.sendMessage(Colors.translateColors("&aPlugin was reloaded!"));
                 return true;
+            case "button":
+                if (!sender.hasPermission("clickableimages.button") && !sender.hasPermission("clickableimages.admin")) {
+                    sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
+                    return true;
+                }
+                if (args.length < 2) {
+                    sender.sendMessage(Colors.translateColors("&7/cimg &bbutton &c<add|remove|action> [add|remove]"));
+                    return true;
+                }
+                switch (args[1].toLowerCase()) {
+                    case "add":
+                        if (Managers.getManager(ButtonManager.class).getQueue().containsKey(sender.getName()) && Managers.getManager(ButtonManager.class).getQueue().get(sender.getName()) == Action.ADD) {
+                            Managers.getManager(ButtonManager.class).getQueue().remove(sender.getName());
+                            sender.sendMessage(Colors.translateColors(config.getString("messages.button.cancel")));
+                            return true;
+                        }
+                        Managers.getManager(ButtonManager.class).getQueue().put(sender.getName(), Action.ADD);
+                        sender.sendMessage(Colors.translateColors(config.getString("messages.button.add")));
+                        return true;
+                    case "remove":
+                        if (Managers.getManager(ButtonManager.class).getQueue().containsKey(sender.getName()) && Managers.getManager(ButtonManager.class).getQueue().get(sender.getName()) == Action.REMOVE) {
+                            Managers.getManager(ButtonManager.class).getQueue().remove(sender.getName());
+                            sender.sendMessage(Colors.translateColors(config.getString("messages.button.cancel")));
+                            return true;
+                        }
+                        Managers.getManager(ButtonManager.class).getQueue().put(sender.getName(), Action.REMOVE);
+                        sender.sendMessage(Colors.translateColors(config.getString("messages.button.remove")));
+                        return true;
+                    case "edit":
+                        if (Managers.getManager(ButtonManager.class).getQueue().containsKey(sender.getName()) && Managers.getManager(ButtonManager.class).getQueue().get(sender.getName()) == Action.EDIT) {
+                            Managers.getManager(ButtonManager.class).getQueue().remove(sender.getName());
+                            sender.sendMessage(Colors.translateColors(config.getString("messages.button.cancel")));
+                            return true;
+                        }
+                        if(args.length < 3) {
+                            sender.sendMessage(Colors.translateColors("&7/cimg &bbutton &cedit &c<image>"));
+                            return true;
+                        }
+                        ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(args[2]);
+                        if (image == null) {
+                            sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
+                            return true;
+                        }
+                        Managers.getManager(ButtonManager.class).getQueue().put(sender.getName(), Action.EDIT);
+                        Managers.getManager(ButtonManager.class).getImagesQueue().put(sender.getName(), image);
+                        sender.sendMessage(Colors.translateColors(config.getString("messages.button.edit")));
+                        return true;
+                    case "action":
+                        if (args.length < 3) {
+                            sender.sendMessage(Colors.translateColors("&7/cimg &bbutton &caction &c<add|remove> <image> <coords> <action>"));
+                            return true;
+                        }
+                        switch (args[2].toLowerCase()) {
+                            case "add":
+                                if (args.length < 5) {
+                                    sender.sendMessage(Colors.translateColors("&7/cimg &bbutton &caction &cadd &c<image> <coords> <action>"));
+                                    return true;
+                                }
+                                image = Managers.getManager(ClickableImagesManager.class).getImage(args[3]);
+                                if (image == null) {
+                                    sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
+                                    return true;
+                                }
+                                String coords = args[4];
+                                if(image.getButton(coords) == null) {
+                                    image.getButtons().add(new Button(coords, new ArrayList<>(), "none"));
+                                }
+                                StringBuilder builder = new StringBuilder();
+                                for (int y = 5; y < args.length; y++) {
+                                    builder.append(args[y]).append(" ");
+                                }
+                                String action = builder.toString();
+                                if (!action.startsWith("[CMD] ") && !action.startsWith("[MSG] ")) {
+                                    sender.sendMessage(Colors.translateColors(config.getString("messages.button.invalid-action")));
+                                    return true;
+                                }
+                                image.getButton(coords).getActions().add(action);
+                                image.save();
+                                sender.sendMessage(Colors.translateColors("&aAction added!"));
+                                return true;
+                            case "remove":
+                                if (args.length < 5) {
+                                    sender.sendMessage(Colors.translateColors("&7/cimg &bbutton &caction &cremove &c<image> <coords> <index>"));
+                                    return true;
+                                }
+                                image = Managers.getManager(ClickableImagesManager.class).getImage(args[3]);
+                                if (image == null) {
+                                    sender.sendMessage(Colors.translateColors(config.getString("messages.image-not-found")));
+                                    return true;
+                                }
+                                coords = args[4];
+                                if(image.getButton(coords) == null) {
+                                    sender.sendMessage(Colors.translateColors(config.getString("messages.button.not-found")));
+                                    return true;
+                                }
+                                try {
+                                    Integer.parseInt(args[5]);
+                                } catch (NumberFormatException e) {
+                                    sender.sendMessage(Colors.translateColors("&cInvalid number " + args[5] + "!"));
+                                    return true;
+                                }
+                                int index = Integer.parseInt(args[5]);
+                                image.getButton(coords).getActions().remove(index);
+                                image.save();
+                                sender.sendMessage(Colors.translateColors(config.getString("messages.button.invalid-action")));
+                                return true;
+                            default:
+                                sender.sendMessage(Colors.translateColors("&7/cimg &bbutton &caction &c<add|remove> <image> <coords> <action|index>"));
+                                return true;
+                        }
+                }
             default:
                 if (!sender.hasPermission("clickableimages.help") && !sender.hasPermission("clickableimages.admin")) {
                     sender.sendMessage(Colors.translateColors(config.getString("messages.no-permission")));
@@ -385,6 +500,7 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
         List<String> data = new ArrayList<>();
         data.add("place");
         data.add("delete");
+        data.add("button");
         data.add("asset");
         data.add("images");
         data.add("assets");
@@ -433,6 +549,15 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                     StringUtil.copyPartialMatches(args[1], data, finalData);
                     Collections.sort(finalData);
                     return finalData;
+                case "button":
+                    data.clear();
+                    data.add("add");
+                    data.add("remove");
+                    data.add("edit");
+                    data.add("action");
+                    StringUtil.copyPartialMatches(args[1], data, finalData);
+                    Collections.sort(finalData);
+                    return finalData;
                 case "assets":
                     data.clear();
                     size = Managers.getManager(AssetsManager.class).getAssets().size();
@@ -447,6 +572,33 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
         }
         if (args.length == 3) {
             if ("action".equals(args[0])) {
+                data.clear();
+                Player player = (Player) sender;
+                Collection<ItemFrame> frames = player.getLocation().getNearbyEntitiesByType(ItemFrame.class, 2);
+                ClickableImage nearest = null;
+                for (ItemFrame frame : frames) {
+                    ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(frame.getLocation());
+                    if (image != null) {
+                        nearest = image;
+                        break;
+                    }
+                }
+
+                if (nearest != null) {
+                    data.add(nearest.getName());
+                }
+                return data;
+            }
+            if ("action".equals(args[1])) {
+                data.clear();
+                data.add("add");
+                data.add("remove");
+                StringUtil.copyPartialMatches(args[2], data, finalData);
+                Collections.sort(finalData);
+                return data;
+            }
+
+            if ("button".equals(args[0]) && "edit".equals(args[1])) {
                 data.clear();
                 Player player = (Player) sender;
                 Collection<ItemFrame> frames = player.getLocation().getNearbyEntitiesByType(ItemFrame.class, 2);
@@ -486,6 +638,72 @@ public class ClickableImagesCommand implements CommandExecutor, TabExecutor {
                     }
                 }
                 StringUtil.copyPartialMatches(args[3], data, finalData);
+                Collections.sort(finalData);
+                return finalData;
+            }
+            if ("action".equals(args[1]) && "add".equals(args[2])) {
+                data.clear();
+                Player player = (Player) sender;
+                Collection<ItemFrame> frames = player.getLocation().getNearbyEntitiesByType(ItemFrame.class, 2);
+                ClickableImage nearest = null;
+                for (ItemFrame frame : frames) {
+                    ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(frame.getLocation());
+                    if (image != null) {
+                        nearest = image;
+                        break;
+                    }
+                }
+
+                if (nearest != null) {
+                    data.add(nearest.getName());
+                }
+                return data;
+            }
+            if ("action".equals(args[1]) && "remove".equals(args[2])) {
+                data.clear();
+                Player player = (Player) sender;
+                Collection<ItemFrame> frames = player.getLocation().getNearbyEntitiesByType(ItemFrame.class, 2);
+                ClickableImage nearest = null;
+                for (ItemFrame frame : frames) {
+                    ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(frame.getLocation());
+                    if (image != null) {
+                        nearest = image;
+                        break;
+                    }
+                }
+
+                if (nearest != null) {
+                    data.add(nearest.getName());
+                }
+                return data;
+            }
+            return Collections.emptyList();
+        }
+        if(args.length == 5) {
+            if ("action".equals(args[1]) && "add".equals(args[2])) {
+                finalData = new ArrayList<>();
+                ClickableImage image = Managers.getManager(ClickableImagesManager.class).getImage(args[3]);
+                List<String> coords = new ArrayList<>();
+                if (image != null) {
+                    for (int x = 0; x < image.getGrid().size(); x++) {
+                        for (int y = 0; y < image.getGrid().get(x).size(); y++) {
+                            coords.add(x + "+" + y);
+                        }
+                    }
+                }
+                StringUtil.copyPartialMatches(args[4], coords, finalData);
+                Collections.sort(finalData);
+                return finalData;
+            }
+            return Collections.emptyList();
+        }
+        if(args.length == 6) {
+            if ("action".equals(args[1]) && "add".equals(args[2])) {
+                data.clear();
+                data.add("[PERM]");
+                data.add("[MSG]");
+                data.add("[CMD]");
+                StringUtil.copyPartialMatches(args[5], data, finalData);
                 Collections.sort(finalData);
                 return finalData;
             }
