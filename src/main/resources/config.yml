@@ -54,7 +54,7 @@ messages:
     edit: "&aNow type the action in the chat eg. [CMD] say help. (Execute command again to cancel)"
     delete: "&cNow right click on the image button to delete it. (Execute command again to cancel)"
     cancel: "&cCancelled action"
-    invalid-action: "&cInvalid action"
+    invalid-action: "&cInvalid action."
     not-found: "&cButton not found."
 
   image-info:
